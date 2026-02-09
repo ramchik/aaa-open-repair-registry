@@ -1,0 +1,1 @@
+{"name": "aaa-open-repair-registry", "version": "1.0.0", "description": "AAA registry system", "main": "index.js", "scripts": { "test": "echo 'Error: no test specified' && exit 1" }, "dependencies": { "express": "^4.17.1", "mongoose": "^5.11.15" }}
