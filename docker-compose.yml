@@ -1,1 +1,28 @@
-version: '3.8'\n\nservices:\n  postgres:\n    image: postgres:latest\n    environment:\n      POSTGRES_DB: mydatabase\n      POSTGRES_USER: user\n      POSTGRES_PASSWORD: password\n    ports:\n      - "5432:5432"\n    volumes:\n      - postgres_data:/var/lib/postgresql/data\n\n  backend:\n    build: ./backend\n    environment:\n      DATABASE_URL: postgres://user:password@postgres:5432/mydatabase\n    depends_on:\n      - postgres\n    ports:\n      - "5000:5000"\n\n  frontend:\n    build: ./frontend\n    ports:\n      - "3000:3000"\n    depends_on:\n      - backend\n\nvolumes:\n  postgres_data:
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: vascular_registry
+      POSTGRES_USER: vascular
+      POSTGRES_PASSWORD: vascular_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./002_vascular_registry_schema.sql:/docker-entrypoint-initdb.d/001_schema.sql
+
+  backend:
+    build: .
+    environment:
+      DATABASE_URL: postgres://vascular:vascular_secret@postgres:5432/vascular_registry
+      PORT: 5000
+    depends_on:
+      - postgres
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

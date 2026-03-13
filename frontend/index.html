@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vascular Registry – Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="index.html">
+      <i class="bi bi-heart-pulse-fill me-2"></i>Vascular Registry
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link active" href="index.html"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="patients.html"><i class="bi bi-people me-1"></i>Patients</a></li>
+        <li class="nav-item"><a class="nav-link" href="procedure.html"><i class="bi bi-clipboard2-pulse me-1"></i>Add Procedure</a></li>
+        <li class="nav-item"><a class="nav-link" href="followup.html"><i class="bi bi-calendar-check me-1"></i>Follow-up</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid mt-4">
+  <div class="row mb-3">
+    <div class="col">
+      <h2 class="fw-bold text-primary"><i class="bi bi-speedometer2 me-2"></i>Registry Dashboard</h2>
+      <p class="text-muted">Vascular Quality Initiative – Style Registry</p>
+    </div>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="row g-3 mb-4" id="summaryCards">
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm bg-primary text-white h-100">
+        <div class="card-body d-flex align-items-center">
+          <i class="bi bi-people-fill fs-2 me-3"></i>
+          <div>
+            <div class="small">Total Patients</div>
+            <div class="fs-3 fw-bold" id="totalPatients">–</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm bg-success text-white h-100">
+        <div class="card-body d-flex align-items-center">
+          <i class="bi bi-clipboard2-pulse-fill fs-2 me-3"></i>
+          <div>
+            <div class="small">Total Procedures</div>
+            <div class="fs-3 fw-bold" id="totalProcedures">–</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm bg-warning text-dark h-100">
+        <div class="card-body d-flex align-items-center">
+          <i class="bi bi-exclamation-triangle-fill fs-2 me-3"></i>
+          <div>
+            <div class="small">Ruptured AAA</div>
+            <div class="fs-3 fw-bold" id="rupturedCount">–</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm bg-info text-white h-100">
+        <div class="card-body d-flex align-items-center">
+          <i class="bi bi-calendar-check-fill fs-2 me-3"></i>
+          <div>
+            <div class="small">Follow-up Records</div>
+            <div class="fs-3 fw-bold" id="totalFollowups">–</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <!-- AAA Repair Type -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white fw-semibold"><i class="bi bi-pie-chart-fill me-2 text-primary"></i>AAA Repair Type</div>
+        <div class="card-body">
+          <div id="repairTypeBreakdown" class="text-muted small">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Complication Rates -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white fw-semibold"><i class="bi bi-bar-chart-fill me-2 text-danger"></i>Complication Rates (AAA)</div>
+        <div class="card-body" id="complicationRates">
+          <div class="text-muted small">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mortality -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white fw-semibold"><i class="bi bi-graph-up me-2 text-success"></i>Mortality by Procedure</div>
+        <div class="card-body" id="mortalityTable">
+          <div class="text-muted small">Loading…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Procedures -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-clock-history me-2 text-secondary"></i>Recent Procedures</span>
+      <a href="procedure.html" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Procedure</a>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0" id="recentProcedures">
+          <thead class="table-light">
+            <tr>
+              <th>Date</th><th>Patient</th><th>MRN</th><th>Procedure</th>
+              <th>Max Ø (mm)</th><th>Urgency</th><th>Surgeon</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="recentProceduresBody">
+            <tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/api.js"></script>
+<script>
+(async () => {
+  try {
+    const data = await api.get('/stats/dashboard');
+    const t = data.totals;
+    document.getElementById('totalPatients').textContent = t.total_patients;
+    document.getElementById('totalProcedures').textContent = t.total_procedures;
+    document.getElementById('totalFollowups').textContent = t.total_followups;
+    document.getElementById('rupturedCount').textContent = data.ruptured_aaa.ruptured_count;
+
+    // Repair type breakdown
+    const rb = data.aaa_repair_type_breakdown;
+    if (rb) {
+      document.getElementById('repairTypeBreakdown').innerHTML = `
+        <div class="d-flex justify-content-between py-2 border-bottom"><span>EVAR</span><strong>${rb.evar || 0}</strong></div>
+        <div class="d-flex justify-content-between py-2 border-bottom"><span>Open Repair</span><strong>${rb.open_repair || 0}</strong></div>
+        <div class="d-flex justify-content-between py-2"><span>Complex EVAR (FEVAR/BEVAR)</span><strong>${rb.complex_evar || 0}</strong></div>
+        ${(rb.evar > 0 || rb.open_repair > 0) ? `<div class="mt-2 text-muted small">EVAR rate: ${Math.round(100*rb.evar/(+rb.evar + +rb.open_repair + +rb.complex_evar))}%</div>` : ''}
+      `;
+    } else {
+      document.getElementById('repairTypeBreakdown').textContent = 'No data yet';
+    }
+
+    // Complication rates
+    const cr = data.complication_rates;
+    if (cr && cr.total_aaa > 0) {
+      document.getElementById('complicationRates').innerHTML = `
+        <div class="small text-muted mb-2">Based on ${cr.total_aaa} AAA case(s)</div>
+        ${makeBar('Cardiac', cr.cardiac_pct)}
+        ${makeBar('Pulmonary', cr.pulmonary_pct)}
+        ${makeBar('Renal', cr.renal_pct)}
+        ${makeBar('Neurological', cr.neuro_pct)}
+        ${makeBar('Return to OR', cr.return_to_or_pct)}
+        ${makeBar('30-day Readmission', cr.readmission_pct)}
+        ${makeBar('Conversion to Open', cr.conversion_pct)}
+      `;
+    } else {
+      document.getElementById('complicationRates').textContent = 'No AAA data yet';
+    }
+
+    // Mortality table
+    const mort = data.mortality_by_type;
+    if (mort.length > 0) {
+      document.getElementById('mortalityTable').innerHTML = `
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Procedure</th><th>N</th><th>Deaths</th><th>Rate</th></tr></thead>
+          <tbody>${mort.map(m => `
+            <tr>
+              <td>${m.procedure_type}</td>
+              <td>${m.total}</td>
+              <td>${m.deaths}</td>
+              <td><span class="badge ${m.mortality_rate_pct > 5 ? 'bg-danger' : 'bg-success'}">${m.mortality_rate_pct || 0}%</span></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`;
+    } else {
+      document.getElementById('mortalityTable').textContent = 'No data yet';
+    }
+
+    // Recent procedures
+    const tbody = document.getElementById('recentProceduresBody');
+    if (data.recent_procedures.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No procedures yet. <a href="procedure.html">Add first procedure</a></td></tr>';
+    } else {
+      tbody.innerHTML = data.recent_procedures.map(p => `
+        <tr>
+          <td>${fmtDate(p.procedure_date)}</td>
+          <td>${p.last_name}, ${p.first_name}</td>
+          <td class="text-muted">${p.mrn || '–'}</td>
+          <td><span class="badge bg-secondary">${p.procedure_type}</span></td>
+          <td>${p.max_aaa_diameter_mm ? p.max_aaa_diameter_mm + ' mm' : '–'}</td>
+          <td><span class="badge ${urgencyColor(p.urgency)}">${p.urgency || '–'}</span></td>
+          <td>${p.surgeon_name || '–'}</td>
+          <td><a href="procedure.html?id=${p.id}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a></td>
+        </tr>`).join('');
+    }
+  } catch (e) {
+    console.error(e);
+    document.getElementById('summaryCards').innerHTML = '<div class="col"><div class="alert alert-warning">Could not connect to API. Make sure the backend is running.</div></div>';
+  }
+})();
+
+function makeBar(label, val) {
+  const v = parseFloat(val) || 0;
+  return `<div class="mb-2">
+    <div class="d-flex justify-content-between small"><span>${label}</span><strong>${v}%</strong></div>
+    <div class="progress" style="height:6px">
+      <div class="progress-bar ${v > 10 ? 'bg-danger' : v > 5 ? 'bg-warning' : 'bg-success'}" style="width:${Math.min(v,100)}%"></div>
+    </div>
+  </div>`;
+}
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString() : '–'; }
+function urgencyColor(u) {
+  return u === 'Ruptured' ? 'bg-danger' : u === 'Emergent' ? 'bg-warning text-dark' : u === 'Urgent' ? 'bg-info' : 'bg-success';
+}
+</script>
+</body>
+</html>

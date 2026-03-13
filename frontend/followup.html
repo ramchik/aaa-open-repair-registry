@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Follow-up – Vascular Registry</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="index.html"><i class="bi bi-heart-pulse-fill me-2"></i>Vascular Registry</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="index.html"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="patients.html"><i class="bi bi-people me-1"></i>Patients</a></li>
+        <li class="nav-item"><a class="nav-link" href="procedure.html"><i class="bi bi-clipboard2-pulse me-1"></i>Add Procedure</a></li>
+        <li class="nav-item"><a class="nav-link active" href="followup.html"><i class="bi bi-calendar-check me-1"></i>Follow-up</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid mt-4" style="max-width:1000px">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="fw-bold text-primary"><i class="bi bi-calendar-check me-2"></i>Follow-up Entry</h2>
+    <a href="patients.html" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Patients</a>
+  </div>
+
+  <div id="alertBox"></div>
+
+  <form id="followupForm">
+    <!-- Select Procedure -->
+    <div class="form-section">
+      <h5><i class="bi bi-clipboard2 me-2"></i>Procedure</h5>
+      <div class="row g-3">
+        <div class="col-md-5">
+          <label class="form-label">Patient <span class="required-star">*</span></label>
+          <select id="patientSelect" class="form-select" onchange="loadProcedures()">
+            <option value="">– Select patient –</option>
+          </select>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Procedure <span class="required-star">*</span></label>
+          <select name="procedure_id" class="form-select" required id="procedureSelect">
+            <option value="">– Select procedure –</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Visit Date <span class="required-star">*</span></label>
+          <input type="date" name="visit_date" class="form-control" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Months from Procedure</label>
+          <input type="number" name="months_from_procedure" class="form-control" step="0.5" min="0">
+        </div>
+      </div>
+    </div>
+
+    <!-- Vital Status -->
+    <div class="form-section">
+      <h5><i class="bi bi-heart me-2"></i>Vital Status</h5>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">Vital Status</label>
+          <select name="vital_status" class="form-select">
+            <option value="">–</option>
+            <option>Alive</option><option>Deceased</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Date of Death</label>
+          <input type="date" name="death_date" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Cause of Death</label>
+          <input type="text" name="cause_of_death" class="form-control" placeholder="e.g. Aortic-related, Cardiac, Other">
+        </div>
+        <div class="col-md-2">
+          <div class="form-check mt-4">
+            <input class="form-check-input" type="checkbox" name="death_related_to_procedure" id="deathrp">
+            <label class="form-check-label" for="deathrp">Procedure-related</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Ambulatory Status</label>
+          <select name="ambulatory_status" class="form-select">
+            <option value="">–</option>
+            <option>Independent</option><option>Assisted</option><option>Non-ambulatory</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Imaging (EVAR surveillance) -->
+    <div class="form-section">
+      <h5><i class="bi bi-camera me-2"></i>Imaging / Surveillance</h5>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <div class="form-check mt-4">
+            <input class="form-check-input" type="checkbox" name="imaging_performed" id="imgdone">
+            <label class="form-check-label" for="imgdone">Imaging Performed</label>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Imaging Type</label>
+          <select name="imaging_type" class="form-select">
+            <option value="">–</option>
+            <option>CTA</option><option>Duplex Ultrasound</option>
+            <option>X-ray</option><option>MRA</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Max Sac Ø (mm)</label>
+          <input type="number" name="max_sac_diameter_mm" class="form-control" min="0">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Sac Size Change</label>
+          <select name="sac_change" class="form-select">
+            <option value="">–</option>
+            <option>Stable</option><option>Decreased</option><option>Increased</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <div class="form-check mt-4">
+            <input class="form-check-input" type="checkbox" name="endoleak_present" id="el">
+            <label class="form-check-label" for="el">Endoleak</label>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Endoleak Type</label>
+          <select name="endoleak_type" class="form-select">
+            <option value="">–</option>
+            <option value="I">Type I</option><option value="II">Type II</option>
+            <option value="III">Type III</option><option value="IV">Type IV</option>
+            <option value="V">Type V (Endotension)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reintervention -->
+    <div class="form-section">
+      <h5><i class="bi bi-arrow-repeat me-2"></i>Reintervention</h5>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <div class="form-check mt-4">
+            <input class="form-check-input" type="checkbox" name="reintervention" id="reint">
+            <label class="form-check-label fw-semibold" for="reint">Reintervention Required</label>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Reintervention Date</label>
+          <input type="date" name="reintervention_date" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Reintervention Type/Details</label>
+          <input type="text" name="reintervention_type" class="form-control" placeholder="e.g. Endoleak coil embolization, limb extension">
+        </div>
+        <div class="col-md-12">
+          <label class="form-label">Notes</label>
+          <textarea name="notes" class="form-control" rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2 mb-5">
+      <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-save me-2"></i>Save Follow-up</button>
+      <a href="patients.html" class="btn btn-outline-secondary btn-lg">Cancel</a>
+    </div>
+  </form>
+
+  <!-- Follow-up history (shown when procedure is selected) -->
+  <div id="historySection" style="display:none" class="mb-5">
+    <h5 class="fw-bold text-secondary"><i class="bi bi-clock-history me-2"></i>Follow-up History</h5>
+    <div class="table-responsive">
+      <table class="table table-sm table-bordered">
+        <thead class="table-light">
+          <tr><th>Date</th><th>Months</th><th>Vital</th><th>Sac Ø</th><th>Endoleak</th><th>Reintervention</th><th>Notes</th></tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/api.js"></script>
+<script>
+async function init() {
+  const patients = await api.get('patients');
+  const psel = document.getElementById('patientSelect');
+  patients.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p.id;
+    o.textContent = `${p.last_name}, ${p.first_name}${p.mrn ? ' (' + p.mrn + ')' : ''}`;
+    psel.appendChild(o);
+  });
+
+  const pid = qp('patient_id');
+  if (pid) { psel.value = pid; await loadProcedures(); }
+  const procid = qp('procedure_id');
+  if (procid) {
+    document.getElementById('procedureSelect').value = procid;
+    loadHistory();
+  }
+}
+
+async function loadProcedures() {
+  const pid = document.getElementById('patientSelect').value;
+  const psel = document.getElementById('procedureSelect');
+  psel.innerHTML = '<option value="">– Select procedure –</option>';
+  if (!pid) return;
+  const procs = await api.get('procedures', { patient_id: pid });
+  procs.forEach(pr => {
+    const o = document.createElement('option');
+    o.value = pr.id;
+    o.textContent = `${fmtDate(pr.procedure_date)} – ${pr.procedure_type}${pr.repair_type ? ' (' + pr.repair_type + ')' : ''}`;
+    psel.appendChild(o);
+  });
+}
+
+document.getElementById('procedureSelect').addEventListener('change', loadHistory);
+
+async function loadHistory() {
+  const procId = document.getElementById('procedureSelect').value;
+  if (!procId) { document.getElementById('historySection').style.display = 'none'; return; }
+  const rows = await api.get('followup', { procedure_id: procId });
+  const sec = document.getElementById('historySection');
+  if (!rows.length) { sec.style.display = 'none'; return; }
+  sec.style.display = '';
+  document.getElementById('historyBody').innerHTML = rows.map(r => `
+    <tr>
+      <td>${fmtDate(r.visit_date)}</td>
+      <td>${r.months_from_procedure ?? '–'}</td>
+      <td>${r.vital_status === 'Deceased' ? '<span class="badge bg-danger">Deceased</span>' : r.vital_status || '–'}</td>
+      <td>${r.max_sac_diameter_mm ? r.max_sac_diameter_mm + ' mm' : '–'}</td>
+      <td>${r.endoleak_present ? '<span class="badge bg-warning text-dark">Type ' + (r.endoleak_type||'?') + '</span>' : 'No'}</td>
+      <td>${r.reintervention ? '<span class="badge bg-danger">Yes</span>' : 'No'}</td>
+      <td class="text-muted small">${r.notes || ''}</td>
+    </tr>`).join('');
+}
+
+document.getElementById('followupForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = collectForm('followupForm');
+  try {
+    await api.post('followup', data);
+    document.getElementById('alertBox').innerHTML = '<div class="alert alert-success">Follow-up saved successfully!</div>';
+    window.scrollTo(0,0);
+    loadHistory();
+  } catch (err) {
+    document.getElementById('alertBox').innerHTML = `<div class="alert alert-danger">Error: ${err.message}</div>`;
+  }
+});
+
+init();
+</script>
+</body>
+</html>

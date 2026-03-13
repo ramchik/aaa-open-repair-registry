@@ -1,0 +1,9 @@
+body { background: #f4f6f9; }
+.navbar-brand { font-size: 1.15rem; letter-spacing: .5px; }
+.card { border-radius: 12px; }
+.card-header { border-radius: 12px 12px 0 0 !important; font-size: .95rem; padding: .75rem 1.25rem; }
+.table th { font-size: .82rem; text-transform: uppercase; letter-spacing: .5px; color: #6c757d; }
+.badge { font-size: .75rem; font-weight: 600; }
+.form-section { background: #fff; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+.form-section h5 { color: #0d6efd; border-bottom: 2px solid #e9ecef; padding-bottom: .5rem; margin-bottom: 1rem; font-size: 1rem; font-weight: 700; }
+.required-star { color: #dc3545; }
