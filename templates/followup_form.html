@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Add Follow-Up{% endblock %}
+{% block content %}
+<h3>Add Follow-Up - {{ procedure.procedure_type }} ({{ procedure.procedure_date or 'No date' }})</h3>
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Follow-Up Date</label>
+                    <input type="date" class="form-control" name="followup_date">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Follow-Up Interval</label>
+                    <select class="form-select" name="followup_interval">
+                        <option value="">--</option>
+                        <option value="30 days">30 days</option>
+                        <option value="6 months">6 months</option>
+                        <option value="1 year">1 year</option>
+                        <option value="2 years">2 years</option>
+                        <option value="3 years">3 years</option>
+                        <option value="5 years">5 years</option>
+                    </select>
+                </div>
+            </div>
+            <hr><h5>Events</h5>
+            <div class="row g-3">
+                {% for label, field in [
+                    ('Stroke', 'fu_stroke'), ('TIA', 'fu_tia'),
+                    ('Myocardial Infarction', 'fu_mi'), ('Death', 'fu_death'),
+                    ('Ipsilateral Stroke', 'fu_ipsi_stroke'),
+                    ('Contralateral Stroke', 'fu_contra_stroke'),
+                    ('Reintervention', 'fu_reintervention')
+                ] %}
+                <div class="col-md-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="{{ field }}" id="{{ field }}">
+                        <label class="form-check-label" for="{{ field }}">{{ label }}</label>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <hr><h5>Restenosis Data</h5>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Restenosis Degree (%)</label>
+                    <input type="number" step="0.1" min="0" max="100" class="form-control" name="rest_degree">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">PSV (cm/s)</label>
+                    <input type="number" step="0.1" class="form-control" name="rest_psv">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">EDV (cm/s)</label>
+                    <input type="number" step="0.1" class="form-control" name="rest_edv">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">ICA/CCA Ratio</label>
+                    <input type="number" step="0.01" class="form-control" name="rest_ratio">
+                </div>
+            </div>
+
+            <hr><h5>Quality of Life</h5>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">EQ-5D Score</label>
+                    <input type="number" step="0.01" class="form-control" name="eq5d">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">SF-36 Score</label>
+                    <input type="number" step="0.01" class="form-control" name="sf36">
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Save Follow-Up</button>
+                <a href="{{ url_for('patient_view', patient_id=procedure.patient_id) }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block title %}Add Procedure - Patient {{ patient.patient_id }}{% endblock %}
+{% block content %}
+<h3>Add Procedure - Patient #{{ patient.patient_id }}</h3>
+<div class="card">
+    <div class="card-body">
+        <form method="post" id="procForm">
+            <h5>Procedure Details</h5>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Procedure Date</label>
+                    <input type="date" class="form-control" name="procedure_date">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Procedure Type</label>
+                    <select class="form-select" name="procedure_type" id="procType" onchange="toggleDetails()">
+                        <option value="">--</option>
+                        <option value="CEA">CEA</option>
+                        <option value="CAS">CAS</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Side</label>
+                    <select class="form-select" name="side">
+                        <option value="">--</option>
+                        <option value="Left">Left</option>
+                        <option value="Right">Right</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Symptomatic Status</label>
+                    <select class="form-select" name="symptomatic_status">
+                        <option value="">--</option>
+                        <option value="Symptomatic">Symptomatic</option>
+                        <option value="Asymptomatic">Asymptomatic</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Indication</label>
+                    <input type="text" class="form-control" name="indication">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Stenosis Degree (%)</label>
+                    <input type="number" step="0.1" min="0" max="100" class="form-control" name="stenosis_degree">
+                </div>
+            </div>
+
+            <!-- CEA Details -->
+            <div id="ceaSection" class="mt-4" style="display:none">
+                <hr><h5>CEA Details</h5>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Anesthesia Type</label>
+                        <select class="form-select" name="anesthesia_type">
+                            <option value="">--</option>
+                            <option value="General">General</option>
+                            <option value="Regional">Regional</option>
+                            <option value="Local">Local</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Clamp Time (min)</label>
+                        <input type="number" class="form-control" name="clamp_time">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Closure Type</label>
+                        <select class="form-select" name="closure_type">
+                            <option value="">--</option>
+                            <option value="Primary">Primary</option>
+                            <option value="Patch">Patch</option>
+                            <option value="Eversion">Eversion</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Monitoring Type</label>
+                        <select class="form-select" name="monitoring_type">
+                            <option value="">--</option>
+                            <option value="EEG">EEG</option>
+                            <option value="Stump Pressure">Stump Pressure</option>
+                            <option value="TCD">TCD</option>
+                            <option value="Awake">Awake</option>
+                            <option value="None">None</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check mt-3"><input class="form-check-input" type="checkbox" name="shunt_used" id="su"><label class="form-check-label" for="su">Shunt Used</label></div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check mt-3"><input class="form-check-input" type="checkbox" name="patch_used" id="pu2"><label class="form-check-label" for="pu2">Patch Used</label></div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Patch Type</label>
+                        <select class="form-select" name="patch_type">
+                            <option value="">--</option>
+                            <option value="Dacron">Dacron</option>
+                            <option value="PTFE">PTFE</option>
+                            <option value="Bovine Pericardium">Bovine Pericardium</option>
+                            <option value="Vein">Vein</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CAS Details -->
+            <div id="casSection" class="mt-4" style="display:none">
+                <hr><h5>CAS Details</h5>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Access Site</label>
+                        <select class="form-select" name="access_site">
+                            <option value="">--</option>
+                            <option value="Femoral">Femoral</option>
+                            <option value="Radial">Radial</option>
+                            <option value="Direct Carotid">Direct Carotid</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Embolic Protection</label>
+                        <select class="form-select" name="embolic_protection">
+                            <option value="">--</option>
+                            <option value="Distal Filter">Distal Filter</option>
+                            <option value="Proximal Occlusion">Proximal Occlusion</option>
+                            <option value="Flow Reversal">Flow Reversal</option>
+                            <option value="None">None</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Stent Type</label>
+                        <input type="text" class="form-control" name="stent_type">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Stent Diameter (mm)</label>
+                        <input type="number" step="0.1" class="form-control" name="stent_diameter">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Stent Length (mm)</label>
+                        <input type="number" step="0.1" class="form-control" name="stent_length">
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check mt-3"><input class="form-check-input" type="checkbox" name="predilatation" id="pred"><label class="form-check-label" for="pred">Predilatation</label></div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check mt-3"><input class="form-check-input" type="checkbox" name="postdilatation" id="postd"><label class="form-check-label" for="postd">Postdilatation</label></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Intraoperative Events -->
+            <hr><h5>Intraoperative Events</h5>
+            <div class="row g-3">
+                {% for label, field in [
+                    ('Bradycardia', 'bradycardia'), ('Hypotension', 'hypotension'),
+                    ('Embolization', 'embolization'), ('Vessel Dissection', 'vessel_dissection'),
+                    ('Conversion to Open', 'conversion_to_open'), ('Technical Failure', 'technical_failure')
+                ] %}
+                <div class="col-md-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="{{ field }}" id="ie_{{ field }}">
+                        <label class="form-check-label" for="ie_{{ field }}">{{ label }}</label>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- 30-day Complications -->
+            <hr><h5>Perioperative Complications (30-day)</h5>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="form-check"><input class="form-check-input" type="checkbox" name="comp_stroke" id="cs"><label class="form-check-label" for="cs">Stroke</label></div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Stroke Type</label>
+                    <select class="form-select" name="comp_stroke_type">
+                        <option value="">--</option>
+                        <option value="Ischemic">Ischemic</option>
+                        <option value="Hemorrhagic">Hemorrhagic</option>
+                    </select>
+                </div>
+                {% for label, field in [
+                    ('TIA', 'comp_tia'), ('Myocardial Infarction', 'comp_mi'),
+                    ('Death', 'comp_death'), ('Cranial Nerve Injury', 'comp_cni'),
+                    ('Hyperperfusion Syndrome', 'comp_hps'),
+                    ('Bleeding', 'comp_bleeding'), ('Infection', 'comp_infection')
+                ] %}
+                <div class="col-md-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="{{ field }}" id="{{ field }}">
+                        <label class="form-check-label" for="{{ field }}">{{ label }}</label>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Save Procedure</button>
+                <a href="{{ url_for('patient_view', patient_id=patient.patient_id) }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function toggleDetails() {
+    var t = document.getElementById('procType').value;
+    document.getElementById('ceaSection').style.display = t === 'CEA' ? 'block' : 'none';
+    document.getElementById('casSection').style.display = t === 'CAS' ? 'block' : 'none';
+}
+</script>
+{% endblock %}
