@@ -47,46 +47,34 @@
 
 <!-- Charts -->
 <div class="row g-3">
-    {% if charts.sex %}
+    {% if chart_data.sex %}
     <div class="col-md-6">
-        <div class="card"><div class="card-body text-center">
-            <img src="data:image/png;base64,{{ charts.sex }}" class="img-fluid" alt="Sex Distribution">
-        </div></div>
+        <div class="card"><div class="card-body"><canvas id="chartSex"></canvas></div></div>
     </div>
     {% endif %}
-    {% if charts.procedures %}
+    {% if chart_data.procedures %}
     <div class="col-md-6">
-        <div class="card"><div class="card-body text-center">
-            <img src="data:image/png;base64,{{ charts.procedures }}" class="img-fluid" alt="Procedure Types">
-        </div></div>
+        <div class="card"><div class="card-body"><canvas id="chartProc"></canvas></div></div>
     </div>
     {% endif %}
-    {% if charts.complications %}
+    {% if chart_data.complications %}
     <div class="col-md-6">
-        <div class="card"><div class="card-body text-center">
-            <img src="data:image/png;base64,{{ charts.complications }}" class="img-fluid" alt="Complications">
-        </div></div>
+        <div class="card"><div class="card-body"><canvas id="chartComp"></canvas></div></div>
     </div>
     {% endif %}
-    {% if charts.cea_vs_cas %}
+    {% if chart_data.cea_vs_cas %}
     <div class="col-md-6">
-        <div class="card"><div class="card-body text-center">
-            <img src="data:image/png;base64,{{ charts.cea_vs_cas }}" class="img-fluid" alt="CEA vs CAS">
-        </div></div>
+        <div class="card"><div class="card-body"><canvas id="chartCeaCas"></canvas></div></div>
     </div>
     {% endif %}
-    {% if charts.km_survival %}
+    {% if chart_data.km_survival %}
     <div class="col-md-6">
-        <div class="card"><div class="card-body text-center">
-            <img src="data:image/png;base64,{{ charts.km_survival }}" class="img-fluid" alt="Kaplan-Meier">
-        </div></div>
+        <div class="card"><div class="card-body"><canvas id="chartKM"></canvas></div></div>
     </div>
     {% endif %}
-    {% if charts.restenosis %}
+    {% if chart_data.restenosis %}
     <div class="col-md-6">
-        <div class="card"><div class="card-body text-center">
-            <img src="data:image/png;base64,{{ charts.restenosis }}" class="img-fluid" alt="Restenosis">
-        </div></div>
+        <div class="card"><div class="card-body"><canvas id="chartRest"></canvas></div></div>
     </div>
     {% endif %}
 </div>
@@ -100,5 +88,104 @@
         <a href="{{ url_for('export_data', fmt='spss') }}" class="btn btn-outline-primary">Export SPSS-ready CSV</a>
     </div>
 </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if stats %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+var CD = {{ chart_data | tojson }};
+
+// Sex distribution
+if (CD.sex && (CD.sex.male || CD.sex.female)) {
+    new Chart(document.getElementById('chartSex'), {
+        type: 'pie',
+        data: {
+            labels: ['Male', 'Female'],
+            datasets: [{data: [CD.sex.male, CD.sex.female], backgroundColor: ['#4e79a7','#e15759']}]
+        },
+        options: {plugins: {title: {display: true, text: 'Sex Distribution'}}}
+    });
+}
+
+// Procedure types
+if (CD.procedures) {
+    new Chart(document.getElementById('chartProc'), {
+        type: 'bar',
+        data: {
+            labels: ['CEA', 'CAS'],
+            datasets: [{label: 'Count', data: [CD.procedures.CEA, CD.procedures.CAS], backgroundColor: ['#4e79a7','#f28e2b']}]
+        },
+        options: {plugins: {title: {display: true, text: 'Procedure Types'}}, scales: {y: {beginAtZero: true}}}
+    });
+}
+
+// Complications
+if (CD.complications) {
+    var c = CD.complications;
+    new Chart(document.getElementById('chartComp'), {
+        type: 'bar',
+        data: {
+            labels: ['Stroke','TIA','MI','Death','CN Injury'],
+            datasets: [{label: 'Count', data: [c.Stroke, c.TIA, c.MI, c.Death, c['CN Injury']], backgroundColor: '#e15759'}]
+        },
+        options: {plugins: {title: {display: true, text: 'Perioperative Complications (30-day)'}}, scales: {y: {beginAtZero: true}}}
+    });
+}
+
+// CEA vs CAS
+if (CD.cea_vs_cas) {
+    var cv = CD.cea_vs_cas;
+    new Chart(document.getElementById('chartCeaCas'), {
+        type: 'bar',
+        data: {
+            labels: ['Stroke %', 'Mortality %'],
+            datasets: [
+                {label: 'CEA', data: [cv.cea_stroke, cv.cea_death], backgroundColor: '#4e79a7'},
+                {label: 'CAS', data: [cv.cas_stroke, cv.cas_death], backgroundColor: '#f28e2b'}
+            ]
+        },
+        options: {plugins: {title: {display: true, text: 'CEA vs CAS Outcomes'}}, scales: {y: {beginAtZero: true}}}
+    });
+}
+
+// Kaplan-Meier survival curve
+if (CD.km_survival) {
+    new Chart(document.getElementById('chartKM'), {
+        type: 'line',
+        data: {
+            datasets: [{
+                label: 'Stroke-free survival',
+                data: CD.km_survival,
+                borderColor: '#4e79a7',
+                backgroundColor: 'rgba(78,121,167,0.1)',
+                fill: true,
+                stepped: 'after',
+                pointRadius: 2
+            }]
+        },
+        options: {
+            plugins: {title: {display: true, text: 'Kaplan-Meier Stroke-Free Survival'}},
+            scales: {
+                x: {type: 'linear', title: {display: true, text: 'Days after procedure'}},
+                y: {min: 0, max: 1, title: {display: true, text: 'Survival probability'}}
+            }
+        }
+    });
+}
+
+// Restenosis histogram
+if (CD.restenosis) {
+    new Chart(document.getElementById('chartRest'), {
+        type: 'bar',
+        data: {
+            labels: CD.restenosis.labels,
+            datasets: [{label: 'Frequency', data: CD.restenosis.values, backgroundColor: '#76b7b2'}]
+        },
+        options: {plugins: {title: {display: true, text: 'Restenosis Degree Distribution'}}, scales: {y: {beginAtZero: true}}}
+    });
+}
+</script>
 {% endif %}
 {% endblock %}

@@ -1,7 +1,6 @@
 import os
 import io
 import csv
-import base64
 from datetime import datetime, date
 
 from flask import (
@@ -9,13 +8,6 @@ from flask import (
     send_file, jsonify
 )
 from flask_sqlalchemy import SQLAlchemy
-
-import pandas as pd
-import numpy as np
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-from scipy import stats
 
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -250,16 +242,11 @@ class QualityOfLife(db.Model):
 
 
 # ---------------------------------------------------------------------------
-# HELPER – generate chart as base64 PNG
+# HELPER – safe mean without numpy
 # ---------------------------------------------------------------------------
 
-def fig_to_base64(fig):
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png", bbox_inches="tight", dpi=100)
-    buf.seek(0)
-    encoded = base64.b64encode(buf.read()).decode("utf-8")
-    plt.close(fig)
-    return encoded
+def safe_mean(values):
+    return round(sum(values) / len(values), 1) if values else 0
 
 
 # ---------------------------------------------------------------------------
@@ -601,14 +588,14 @@ def followup_new(procedure_id):
 def statistics():
     total_patients = Patient.query.count()
     if total_patients == 0:
-        return render_template("statistics.html", stats=None, charts={})
+        return render_template("statistics.html", stats=None, chart_data={})
 
     patients = Patient.query.all()
     procedures = Procedure.query.all()
     complications = Complications.query.all()
 
     ages = [p.age for p in patients if p.age is not None]
-    mean_age = round(np.mean(ages), 1) if ages else 0
+    mean_age = safe_mean(ages)
     male_count = sum(1 for p in patients if p.sex and p.sex.lower() in ("male", "m"))
     female_count = sum(1 for p in patients if p.sex and p.sex.lower() in ("female", "f"))
 
@@ -642,99 +629,66 @@ def statistics():
         "cni_rate": pct(cni_count, total_procs),
     }
 
-    charts = {}
+    # Prepare chart data as plain Python dicts (rendered as JSON in template)
+    chart_data = {
+        "sex": {"male": male_count, "female": female_count},
+        "procedures": {"CEA": cea_count, "CAS": cas_count},
+        "complications": {
+            "Stroke": stroke_count, "TIA": tia_count,
+            "MI": mi_count, "Death": death_count, "CN Injury": cni_count,
+        },
+    }
 
-    # Sex distribution pie chart
-    if male_count or female_count:
-        fig, ax = plt.subplots(figsize=(5, 4))
-        ax.pie([male_count, female_count], labels=["Male", "Female"],
-               autopct="%1.1f%%", colors=["#4e79a7", "#e15759"])
-        ax.set_title("Sex Distribution")
-        charts["sex"] = fig_to_base64(fig)
-
-    # Procedure type bar chart
-    if cea_count or cas_count:
-        fig, ax = plt.subplots(figsize=(5, 4))
-        ax.bar(["CEA", "CAS"], [cea_count, cas_count], color=["#4e79a7", "#f28e2b"])
-        ax.set_title("Procedure Types")
-        ax.set_ylabel("Count")
-        charts["procedures"] = fig_to_base64(fig)
-
-    # Complications bar chart
-    if total_procs:
-        fig, ax = plt.subplots(figsize=(7, 4))
-        comp_labels = ["Stroke", "TIA", "MI", "Death", "CN Injury"]
-        comp_values = [stroke_count, tia_count, mi_count, death_count, cni_count]
-        bars = ax.bar(comp_labels, comp_values, color="#e15759")
-        ax.set_title("Perioperative Complications (30-day)")
-        ax.set_ylabel("Count")
-        for bar, val in zip(bars, comp_values):
-            if val > 0:
-                ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.1,
-                        str(val), ha="center", va="bottom", fontsize=9)
-        charts["complications"] = fig_to_base64(fig)
-
-    # CEA vs CAS complication comparison
+    # CEA vs CAS comparison
     if cea_count and cas_count:
-        cea_procs = [pr.procedure_id for pr in procedures if pr.procedure_type == "CEA"]
-        cas_procs = [pr.procedure_id for pr in procedures if pr.procedure_type == "CAS"]
-        cea_strokes = sum(1 for c in complications if c.procedure_id in cea_procs and c.stroke)
-        cas_strokes = sum(1 for c in complications if c.procedure_id in cas_procs and c.stroke)
-        cea_deaths = sum(1 for c in complications if c.procedure_id in cea_procs and c.death)
-        cas_deaths = sum(1 for c in complications if c.procedure_id in cas_procs and c.death)
+        cea_proc_ids = {pr.procedure_id for pr in procedures if pr.procedure_type == "CEA"}
+        cas_proc_ids = {pr.procedure_id for pr in procedures if pr.procedure_type == "CAS"}
+        chart_data["cea_vs_cas"] = {
+            "cea_stroke": pct(sum(1 for c in complications if c.procedure_id in cea_proc_ids and c.stroke), cea_count),
+            "cas_stroke": pct(sum(1 for c in complications if c.procedure_id in cas_proc_ids and c.stroke), cas_count),
+            "cea_death": pct(sum(1 for c in complications if c.procedure_id in cea_proc_ids and c.death), cea_count),
+            "cas_death": pct(sum(1 for c in complications if c.procedure_id in cas_proc_ids and c.death), cas_count),
+        }
 
-        fig, ax = plt.subplots(figsize=(6, 4))
-        x = np.arange(2)
-        width = 0.35
-        ax.bar(x - width / 2, [pct(cea_strokes, cea_count), pct(cea_deaths, cea_count)],
-               width, label="CEA", color="#4e79a7")
-        ax.bar(x + width / 2, [pct(cas_strokes, cas_count), pct(cas_deaths, cas_count)],
-               width, label="CAS", color="#f28e2b")
-        ax.set_xticks(x)
-        ax.set_xticklabels(["Stroke %", "Mortality %"])
-        ax.set_title("CEA vs CAS Outcomes")
-        ax.legend()
-        charts["cea_vs_cas"] = fig_to_base64(fig)
-
-    # Stroke-free survival (Kaplan-Meier style) if follow-up data exists
+    # Kaplan-Meier data (computed server-side, drawn client-side)
     followups = FollowUp.query.order_by(FollowUp.followup_date).all()
     if followups:
-        try:
-            from lifelines import KaplanMeierFitter
-            durations = []
-            events = []
-            for fu in followups:
-                proc = Procedure.query.get(fu.procedure_id)
-                if proc and proc.procedure_date and fu.followup_date:
-                    days = (fu.followup_date - proc.procedure_date).days
-                    if days >= 0:
-                        durations.append(days)
-                        events.append(1 if fu.stroke else 0)
-            if durations:
-                kmf = KaplanMeierFitter()
-                kmf.fit(durations, events, label="Stroke-free survival")
-                fig, ax = plt.subplots(figsize=(7, 4))
-                kmf.plot_survival_function(ax=ax)
-                ax.set_title("Kaplan-Meier Stroke-Free Survival")
-                ax.set_xlabel("Days after procedure")
-                ax.set_ylabel("Survival probability")
-                charts["km_survival"] = fig_to_base64(fig)
-        except ImportError:
-            pass
+        events_list = []
+        for fu in followups:
+            proc = Procedure.query.get(fu.procedure_id)
+            if proc and proc.procedure_date and fu.followup_date:
+                days = (fu.followup_date - proc.procedure_date).days
+                if days >= 0:
+                    events_list.append({"time": days, "event": 1 if fu.stroke else 0})
+        if events_list:
+            # Compute KM curve: sort by time, compute survival at each event
+            events_list.sort(key=lambda x: x["time"])
+            n = len(events_list)
+            km_points = [{"x": 0, "y": 1.0}]
+            survived = 1.0
+            at_risk = n
+            for item in events_list:
+                if item["event"]:
+                    survived *= (at_risk - 1) / at_risk
+                at_risk -= 1
+                km_points.append({"x": item["time"], "y": round(survived, 4)})
+            chart_data["km_survival"] = km_points
 
-    # Restenosis rates
+    # Restenosis data
     restenoses = Restenosis.query.all()
-    if restenoses:
-        degrees = [r.restenosis_degree for r in restenoses if r.restenosis_degree is not None]
-        if degrees:
-            fig, ax = plt.subplots(figsize=(6, 4))
-            ax.hist(degrees, bins=10, color="#76b7b2", edgecolor="white")
-            ax.set_title("Restenosis Degree Distribution")
-            ax.set_xlabel("Stenosis %")
-            ax.set_ylabel("Frequency")
-            charts["restenosis"] = fig_to_base64(fig)
+    degrees = [r.restenosis_degree for r in restenoses if r.restenosis_degree is not None]
+    if degrees:
+        # Bin into 10 buckets: 0-10, 10-20, ..., 90-100
+        bins = [0] * 10
+        for d in degrees:
+            idx = min(int(d // 10), 9)
+            bins[idx] += 1
+        chart_data["restenosis"] = {
+            "labels": [f"{i*10}-{i*10+10}%" for i in range(10)],
+            "values": bins,
+        }
 
-    return render_template("statistics.html", stats=stats_data, charts=charts)
+    return render_template("statistics.html", stats=stats_data, chart_data=chart_data)
 
 
 # ---- Data Export ----------------------------------------------------------
@@ -743,10 +697,11 @@ def statistics():
 def export_data(fmt):
     patients = Patient.query.all()
     rows = []
+    all_keys = []
+
     for p in patients:
         row = {
             "patient_id": p.patient_id,
-            "hospital_id": p.hospital_id,
             "age": p.age,
             "sex": p.sex,
             "bmi": p.bmi,
@@ -783,28 +738,41 @@ def export_data(fmt):
         flash("No data to export.", "warning")
         return redirect(url_for("index"))
 
-    df = pd.DataFrame(rows)
-    # Anonymize: remove hospital_id
-    if "hospital_id" in df.columns:
-        df = df.drop(columns=["hospital_id"])
+    # Collect all column names in order
+    seen = set()
+    for r in rows:
+        for k in r:
+            if k not in seen:
+                all_keys.append(k)
+                seen.add(k)
 
     buf = io.BytesIO()
-    if fmt == "csv":
-        df.to_csv(buf, index=False)
+
+    if fmt in ("csv", "spss"):
+        text_buf = io.StringIO()
+        writer = csv.DictWriter(text_buf, fieldnames=all_keys, extrasaction="ignore")
+        writer.writeheader()
+        for r in rows:
+            writer.writerow(r)
+        buf.write(text_buf.getvalue().encode("utf-8"))
         buf.seek(0)
-        return send_file(buf, mimetype="text/csv", as_attachment=True,
-                         download_name="carotid_registry_export.csv")
+        name = "carotid_registry_export.csv" if fmt == "csv" else "carotid_registry_spss.csv"
+        return send_file(buf, mimetype="text/csv", as_attachment=True, download_name=name)
+
     elif fmt == "excel":
-        df.to_excel(buf, index=False, engine="openpyxl")
+        from openpyxl import Workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Registry Data"
+        ws.append(all_keys)
+        for r in rows:
+            ws.append([r.get(k, "") for k in all_keys])
+        wb.save(buf)
         buf.seek(0)
-        return send_file(buf, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        return send_file(buf,
+                         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                          as_attachment=True, download_name="carotid_registry_export.xlsx")
-    elif fmt == "spss":
-        # Export as CSV with SPSS-friendly encoding
-        df.to_csv(buf, index=False)
-        buf.seek(0)
-        return send_file(buf, mimetype="text/csv", as_attachment=True,
-                         download_name="carotid_registry_spss.csv")
+
     else:
         flash("Unknown format.", "danger")
         return redirect(url_for("index"))
