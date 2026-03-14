@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Neurological Status - Patient {{ patient.patient_id }}{% endblock %}
+{% block content %}
+<h3>Neurological Status - Patient #{{ patient.patient_id }}</h3>
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="form-check mt-4">
+                        <input class="form-check-input" type="checkbox" name="symptomatic" id="symptomatic" {{ 'checked' if neuro and neuro.symptomatic }}>
+                        <label class="form-check-label" for="symptomatic"><strong>Symptomatic</strong></label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Symptom Type</label>
+                    <select class="form-select" name="symptom_type">
+                        <option value="">--</option>
+                        {% for s in ['Stroke', 'TIA', 'Amaurosis Fugax', 'Crescendo TIA'] %}
+                        <option value="{{ s }}" {{ 'selected' if neuro and neuro.symptom_type == s }}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Symptom Date</label>
+                    <input type="date" class="form-control" name="symptom_date" value="{{ neuro.symptom_date if neuro and neuro.symptom_date else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check mt-4">
+                        <input class="form-check-input" type="checkbox" name="amaurosis_fugax" id="af" {{ 'checked' if neuro and neuro.amaurosis_fugax }}>
+                        <label class="form-check-label" for="af">Amaurosis Fugax</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">NIHSS Score (0-42)</label>
+                    <input type="number" min="0" max="42" class="form-control" name="nihss_score" value="{{ neuro.nihss_score if neuro and neuro.nihss_score is not none else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Modified Rankin Scale (0-6)</label>
+                    <input type="number" min="0" max="6" class="form-control" name="modified_rankin_scale" value="{{ neuro.modified_rankin_scale if neuro and neuro.modified_rankin_scale is not none else '' }}">
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a href="{{ url_for('patient_view', patient_id=patient.patient_id) }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

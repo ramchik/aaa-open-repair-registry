@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% block title %}Patient {{ patient.patient_id }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Patient #{{ patient.patient_id }} {% if patient.hospital_id %}<small class="text-muted">({{ patient.hospital_id }})</small>{% endif %}</h3>
+    <div>
+        <a href="{{ url_for('patient_edit', patient_id=patient.patient_id) }}" class="btn btn-outline-primary btn-sm">Edit</a>
+        <form method="post" action="{{ url_for('patient_delete', patient_id=patient.patient_id) }}" class="d-inline" onsubmit="return confirm('Delete this patient and all related data?')">
+            <button class="btn btn-outline-danger btn-sm">Delete</button>
+        </form>
+    </div>
+</div>
+
+<!-- TABS -->
+<ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-info">Patient Info</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-history">Medical History</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-imaging">Imaging</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-procedures">Procedures</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-followup">Follow-Up</a></li>
+</ul>
+
+<div class="tab-content">
+    <!-- TAB 1: Patient Info -->
+    <div class="tab-pane fade show active" id="tab-info">
+        <div class="card mt-3">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3"><strong>Age:</strong> {{ patient.age or '-' }}</div>
+                    <div class="col-md-3"><strong>Sex:</strong> {{ patient.sex or '-' }}</div>
+                    <div class="col-md-3"><strong>DOB:</strong> {{ patient.date_of_birth or '-' }}</div>
+                    <div class="col-md-3"><strong>BMI:</strong> {{ patient.bmi or '-' }}</div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-3"><strong>Height:</strong> {{ patient.height or '-' }} cm</div>
+                    <div class="col-md-3"><strong>Weight:</strong> {{ patient.weight or '-' }} kg</div>
+                    <div class="col-md-3"><strong>Ethnicity:</strong> {{ patient.ethnicity or '-' }}</div>
+                    <div class="col-md-3"><strong>Smoking:</strong> {{ patient.smoking_status or '-' }}</div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-3"><strong>Alcohol:</strong> {{ patient.alcohol_use or '-' }}</div>
+                </div>
+                <hr>
+                <h6>Medications</h6>
+                {% if patient.medications %}
+                {% set m = patient.medications %}
+                <span class="badge bg-secondary me-1">{{ 'Aspirin' if m.aspirin }}</span>
+                <span class="badge bg-secondary me-1">{{ 'Clopidogrel' if m.clopidogrel }}</span>
+                <span class="badge bg-secondary me-1">{{ 'DAPT' if m.dual_antiplatelet }}</span>
+                <span class="badge bg-secondary me-1">{{ 'Anticoagulation' if m.anticoagulation }}</span>
+                <span class="badge bg-secondary me-1">{{ 'Statin' if m.statin }}</span>
+                <span class="badge bg-secondary me-1">{{ 'PCSK9i' if m.pcsk9_inhibitor }}</span>
+                <span class="badge bg-secondary me-1">{{ 'Antihypertensive' if m.antihypertensive }}</span>
+                {% else %}<span class="text-muted">Not recorded</span>{% endif %}
+                <div class="mt-2">
+                    <a href="{{ url_for('medications', patient_id=patient.patient_id) }}" class="btn btn-sm btn-outline-secondary">Edit Medications</a>
+                </div>
+                <hr>
+                <h6>Neurological Status</h6>
+                {% if patient.neurological %}
+                {% set n = patient.neurological %}
+                <div class="row">
+                    <div class="col-md-3"><strong>Symptomatic:</strong> {{ 'Yes' if n.symptomatic else 'No' }}</div>
+                    <div class="col-md-3"><strong>Type:</strong> {{ n.symptom_type or '-' }}</div>
+                    <div class="col-md-3"><strong>NIHSS:</strong> {{ n.nihss_score if n.nihss_score is not none else '-' }}</div>
+                    <div class="col-md-3"><strong>mRS:</strong> {{ n.modified_rankin_scale if n.modified_rankin_scale is not none else '-' }}</div>
+                </div>
+                {% else %}<span class="text-muted">Not recorded</span>{% endif %}
+                <div class="mt-2">
+                    <a href="{{ url_for('neuro_edit', patient_id=patient.patient_id) }}" class="btn btn-sm btn-outline-secondary">Edit Neuro</a>
+                </div>
+                <hr>
+                <h6>Laboratory</h6>
+                {% if patient.laboratory %}
+                {% for lab in patient.laboratory %}
+                <div class="border rounded p-2 mb-2">
+                    <small class="text-muted">{{ lab.lab_date or 'No date' }}</small><br>
+                    LDL: {{ lab.ldl or '-' }} | HDL: {{ lab.hdl or '-' }} | TC: {{ lab.total_cholesterol or '-' }} |
+                    TG: {{ lab.triglycerides or '-' }} | HbA1c: {{ lab.hba1c or '-' }} | Cr: {{ lab.creatinine or '-' }} |
+                    CRP: {{ lab.crp or '-' }} | Hcy: {{ lab.homocysteine or '-' }} | Plt: {{ lab.platelet_count or '-' }} |
+                    D-dimer: {{ lab.d_dimer or '-' }}
+                </div>
+                {% endfor %}
+                {% else %}<span class="text-muted">No lab data</span>{% endif %}
+                <a href="{{ url_for('lab_new', patient_id=patient.patient_id) }}" class="btn btn-sm btn-outline-secondary">Add Lab Data</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: Medical History -->
+    <div class="tab-pane fade" id="tab-history">
+        <div class="card mt-3">
+            <div class="card-body">
+                {% if patient.medical_history %}
+                {% set h = patient.medical_history %}
+                <div class="row">
+                    {% for label, val in [
+                        ('Hypertension', h.hypertension), ('Diabetes', h.diabetes),
+                        ('Dyslipidemia', h.dyslipidemia), ('CAD', h.coronary_artery_disease),
+                        ('Previous MI', h.previous_mi), ('Previous Stroke', h.previous_stroke),
+                        ('Previous TIA', h.previous_tia), ('PAD', h.peripheral_arterial_disease),
+                        ('Atrial Fibrillation', h.atrial_fibrillation), ('Heart Failure', h.heart_failure),
+                        ('CKD', h.chronic_kidney_disease), ('COPD', h.copd),
+                        ('Malignancy', h.malignancy), ('Prev Carotid Surgery', h.previous_carotid_surgery)
+                    ] %}
+                    <div class="col-md-3 mb-2">
+                        <span class="badge {{ 'bg-danger' if val else 'bg-light text-dark' }}">{{ label }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">No medical history recorded.</p>
+                {% endif %}
+                <a href="{{ url_for('medical_history', patient_id=patient.patient_id) }}" class="btn btn-sm btn-outline-secondary mt-2">Edit Medical History</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: Imaging -->
+    <div class="tab-pane fade" id="tab-imaging">
+        <div class="card mt-3">
+            <div class="card-body">
+                {% if patient.imaging %}
+                {% for img in patient.imaging %}
+                <div class="border rounded p-3 mb-3">
+                    <div class="row">
+                        <div class="col-md-3"><strong>Date:</strong> {{ img.imaging_date or '-' }}</div>
+                        <div class="col-md-3"><strong>Modality:</strong> {{ img.modality or '-' }}</div>
+                        <div class="col-md-3"><strong>NASCET:</strong> {{ img.stenosis_degree_nascet or '-' }}%</div>
+                        <div class="col-md-3"><strong>ECST:</strong> {{ img.stenosis_degree_ecst or '-' }}%</div>
+                    </div>
+                    <div class="row mt-1">
+                        <div class="col-md-3"><strong>Plaque:</strong> {{ img.plaque_type or '-' }}</div>
+                        <div class="col-md-3">Ulceration: {{ 'Yes' if img.plaque_ulceration else 'No' }}</div>
+                        <div class="col-md-3">Calcification: {{ 'Yes' if img.plaque_calcification else 'No' }}</div>
+                        <div class="col-md-3">Echolucent: {{ 'Yes' if img.plaque_echolucency else 'No' }}</div>
+                    </div>
+                    {% if img.duplex %}
+                    <div class="row mt-1">
+                        <div class="col-md-3"><strong>PSV:</strong> {{ img.duplex.peak_systolic_velocity or '-' }}</div>
+                        <div class="col-md-3"><strong>EDV:</strong> {{ img.duplex.end_diastolic_velocity or '-' }}</div>
+                        <div class="col-md-3"><strong>ICA/CCA:</strong> {{ img.duplex.ica_cca_ratio or '-' }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-muted">No imaging data.</p>
+                {% endif %}
+                <a href="{{ url_for('imaging_new', patient_id=patient.patient_id) }}" class="btn btn-sm btn-outline-secondary">Add Imaging</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: Procedures -->
+    <div class="tab-pane fade" id="tab-procedures">
+        <div class="card mt-3">
+            <div class="card-body">
+                {% if patient.procedures %}
+                {% for proc in patient.procedures %}
+                <div class="border rounded p-3 mb-3">
+                    <div class="row">
+                        <div class="col-md-2"><strong>{{ proc.procedure_type }}</strong></div>
+                        <div class="col-md-2">{{ proc.procedure_date or '-' }}</div>
+                        <div class="col-md-2">Side: {{ proc.side or '-' }}</div>
+                        <div class="col-md-3">Stenosis: {{ proc.stenosis_degree or '-' }}%</div>
+                        <div class="col-md-3">{{ proc.symptomatic_status or '-' }}</div>
+                    </div>
+                    {% if proc.cea_details %}
+                    {% set c = proc.cea_details %}
+                    <div class="row mt-1 text-muted small">
+                        <div class="col">Anesthesia: {{ c.anesthesia_type or '-' }} | Shunt: {{ 'Yes' if c.shunt_used else 'No' }} | Patch: {{ c.patch_type if c.patch_used else 'No' }} | Clamp: {{ c.clamp_time or '-' }}min</div>
+                    </div>
+                    {% endif %}
+                    {% if proc.cas_details %}
+                    {% set c = proc.cas_details %}
+                    <div class="row mt-1 text-muted small">
+                        <div class="col">Access: {{ c.access_site or '-' }} | EPD: {{ c.embolic_protection or '-' }} | Stent: {{ c.stent_type or '-' }} {{ c.stent_diameter or '' }}x{{ c.stent_length or '' }}mm</div>
+                    </div>
+                    {% endif %}
+                    {% if proc.complications %}
+                    {% set comp = proc.complications %}
+                    <div class="mt-1">
+                        {% if comp.stroke %}<span class="badge bg-danger">Stroke ({{ comp.stroke_type or '?' }})</span>{% endif %}
+                        {% if comp.tia %}<span class="badge bg-warning text-dark">TIA</span>{% endif %}
+                        {% if comp.myocardial_infarction %}<span class="badge bg-danger">MI</span>{% endif %}
+                        {% if comp.death %}<span class="badge bg-dark">Death</span>{% endif %}
+                        {% if comp.cranial_nerve_injury %}<span class="badge bg-warning text-dark">CN Injury</span>{% endif %}
+                        {% if comp.hyperperfusion_syndrome %}<span class="badge bg-warning text-dark">HPS</span>{% endif %}
+                        {% if comp.bleeding %}<span class="badge bg-warning text-dark">Bleeding</span>{% endif %}
+                        {% if comp.infection %}<span class="badge bg-warning text-dark">Infection</span>{% endif %}
+                    </div>
+                    {% endif %}
+                    <div class="mt-2">
+                        <a href="{{ url_for('followup_new', procedure_id=proc.procedure_id) }}" class="btn btn-sm btn-outline-secondary">Add Follow-Up</a>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-muted">No procedures recorded.</p>
+                {% endif %}
+                <a href="{{ url_for('procedure_new', patient_id=patient.patient_id) }}" class="btn btn-sm btn-outline-secondary">Add Procedure</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 5: Follow-Up -->
+    <div class="tab-pane fade" id="tab-followup">
+        <div class="card mt-3">
+            <div class="card-body">
+                {% set has_fu = [] %}
+                {% for proc in patient.procedures %}
+                    {% for fu in proc.followups %}
+                        {% if has_fu.append(1) %}{% endif %}
+                        <div class="border rounded p-3 mb-3">
+                            <div class="row">
+                                <div class="col-md-3"><strong>{{ proc.procedure_type }}</strong> ({{ proc.procedure_date or '-' }})</div>
+                                <div class="col-md-3">Follow-up: {{ fu.followup_date or '-' }}</div>
+                                <div class="col-md-3">Interval: {{ fu.followup_interval or '-' }}</div>
+                            </div>
+                            <div class="mt-1">
+                                {% if fu.stroke %}<span class="badge bg-danger">Stroke</span>{% endif %}
+                                {% if fu.tia %}<span class="badge bg-warning text-dark">TIA</span>{% endif %}
+                                {% if fu.myocardial_infarction %}<span class="badge bg-danger">MI</span>{% endif %}
+                                {% if fu.death %}<span class="badge bg-dark">Death</span>{% endif %}
+                                {% if fu.ipsilateral_stroke %}<span class="badge bg-danger">Ipsilateral Stroke</span>{% endif %}
+                                {% if fu.reintervention %}<span class="badge bg-info">Reintervention</span>{% endif %}
+                            </div>
+                            {% if fu.restenosis %}
+                            <div class="mt-1 small text-muted">
+                                Restenosis: {{ fu.restenosis.restenosis_degree or '-' }}% | PSV: {{ fu.restenosis.peak_systolic_velocity or '-' }} | EDV: {{ fu.restenosis.end_diastolic_velocity or '-' }}
+                            </div>
+                            {% endif %}
+                            {% if fu.quality_of_life %}
+                            <div class="mt-1 small text-muted">
+                                EQ-5D: {{ fu.quality_of_life.eq5d_score or '-' }} | SF-36: {{ fu.quality_of_life.sf36_score or '-' }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+                {% if not has_fu %}
+                <p class="text-muted">No follow-up data. Add a procedure first, then add follow-ups.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Add Lab Data - Patient {{ patient.patient_id }}{% endblock %}
+{% block content %}
+<h3>Add Laboratory Data - Patient #{{ patient.patient_id }}</h3>
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Lab Date</label>
+                    <input type="date" class="form-control" name="lab_date">
+                </div>
+            </div>
+            <div class="row g-3 mt-1">
+                {% for label, field in [
+                    ('LDL (mg/dL)', 'ldl'), ('HDL (mg/dL)', 'hdl'),
+                    ('Total Cholesterol', 'total_cholesterol'), ('Triglycerides', 'triglycerides'),
+                    ('HbA1c (%)', 'hba1c'), ('Creatinine (mg/dL)', 'creatinine'),
+                    ('CRP (mg/L)', 'crp'), ('Homocysteine', 'homocysteine'),
+                    ('Platelet Count', 'platelet_count'), ('D-Dimer', 'd_dimer')
+                ] %}
+                <div class="col-md-3">
+                    <label class="form-label">{{ label }}</label>
+                    <input type="number" step="0.01" class="form-control" name="{{ field }}">
+                </div>
+                {% endfor %}
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a href="{{ url_for('patient_view', patient_id=patient.patient_id) }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

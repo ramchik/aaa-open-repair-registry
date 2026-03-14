@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Statistics - Carotid Registry{% endblock %}
+{% block content %}
+<h3>Analytics Dashboard</h3>
+
+{% if not stats %}
+<div class="alert alert-info">No data available. Add patients and procedures to see statistics.</div>
+{% else %}
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2">
+        <div class="card stat-card"><h2>{{ stats.total_patients }}</h2><p>Patients</p></div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stat-card"><h2>{{ stats.mean_age }}</h2><p>Mean Age</p></div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stat-card"><h2>{{ stats.total_procedures }}</h2><p>Procedures</p></div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stat-card"><h2>{{ stats.cea }}</h2><p>CEA</p></div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stat-card"><h2>{{ stats.cas }}</h2><p>CAS</p></div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stat-card"><h2>{{ stats.symptomatic_rate }}%</h2><p>Symptomatic</p></div>
+    </div>
+</div>
+
+<!-- Outcome Rates -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card"><h2 class="text-danger">{{ stats.stroke_rate }}%</h2><p>Stroke Rate</p></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card"><h2 class="text-warning">{{ stats.tia_rate }}%</h2><p>TIA Rate</p></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card"><h2 class="text-danger">{{ stats.mi_rate }}%</h2><p>MI Rate</p></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card"><h2 class="text-dark">{{ stats.mortality_rate }}%</h2><p>Mortality</p></div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row g-3">
+    {% if charts.sex %}
+    <div class="col-md-6">
+        <div class="card"><div class="card-body text-center">
+            <img src="data:image/png;base64,{{ charts.sex }}" class="img-fluid" alt="Sex Distribution">
+        </div></div>
+    </div>
+    {% endif %}
+    {% if charts.procedures %}
+    <div class="col-md-6">
+        <div class="card"><div class="card-body text-center">
+            <img src="data:image/png;base64,{{ charts.procedures }}" class="img-fluid" alt="Procedure Types">
+        </div></div>
+    </div>
+    {% endif %}
+    {% if charts.complications %}
+    <div class="col-md-6">
+        <div class="card"><div class="card-body text-center">
+            <img src="data:image/png;base64,{{ charts.complications }}" class="img-fluid" alt="Complications">
+        </div></div>
+    </div>
+    {% endif %}
+    {% if charts.cea_vs_cas %}
+    <div class="col-md-6">
+        <div class="card"><div class="card-body text-center">
+            <img src="data:image/png;base64,{{ charts.cea_vs_cas }}" class="img-fluid" alt="CEA vs CAS">
+        </div></div>
+    </div>
+    {% endif %}
+    {% if charts.km_survival %}
+    <div class="col-md-6">
+        <div class="card"><div class="card-body text-center">
+            <img src="data:image/png;base64,{{ charts.km_survival }}" class="img-fluid" alt="Kaplan-Meier">
+        </div></div>
+    </div>
+    {% endif %}
+    {% if charts.restenosis %}
+    <div class="col-md-6">
+        <div class="card"><div class="card-body text-center">
+            <img src="data:image/png;base64,{{ charts.restenosis }}" class="img-fluid" alt="Restenosis">
+        </div></div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Export -->
+<div class="mt-4">
+    <h5>Export Data</h5>
+    <div class="btn-group">
+        <a href="{{ url_for('export_data', fmt='csv') }}" class="btn btn-outline-primary">Export CSV</a>
+        <a href="{{ url_for('export_data', fmt='excel') }}" class="btn btn-outline-primary">Export Excel</a>
+        <a href="{{ url_for('export_data', fmt='spss') }}" class="btn btn-outline-primary">Export SPSS-ready CSV</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

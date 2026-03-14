@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Add Imaging - Patient {{ patient.patient_id }}{% endblock %}
+{% block content %}
+<h3>Add Carotid Imaging - Patient #{{ patient.patient_id }}</h3>
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Imaging Date</label>
+                    <input type="date" class="form-control" name="imaging_date">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Modality</label>
+                    <select class="form-select" name="modality">
+                        <option value="">--</option>
+                        <option value="Duplex Ultrasound">Duplex Ultrasound</option>
+                        <option value="CTA">CTA</option>
+                        <option value="MRA">MRA</option>
+                        <option value="DSA">DSA</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Plaque Type</label>
+                    <select class="form-select" name="plaque_type">
+                        <option value="">--</option>
+                        <option value="Fibrous">Fibrous</option>
+                        <option value="Lipid-rich">Lipid-rich</option>
+                        <option value="Calcified">Calcified</option>
+                        <option value="Mixed">Mixed</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Stenosis NASCET (%)</label>
+                    <input type="number" step="0.1" min="0" max="100" class="form-control" name="stenosis_degree_nascet">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Stenosis ECST (%)</label>
+                    <input type="number" step="0.1" min="0" max="100" class="form-control" name="stenosis_degree_ecst">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Contralateral Stenosis (%)</label>
+                    <input type="number" step="0.1" min="0" max="100" class="form-control" name="contralateral_stenosis">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <div>
+                        <div class="form-check"><input class="form-check-input" type="checkbox" name="plaque_ulceration" id="pu"><label class="form-check-label" for="pu">Ulceration</label></div>
+                        <div class="form-check"><input class="form-check-input" type="checkbox" name="plaque_calcification" id="pc"><label class="form-check-label" for="pc">Calcification</label></div>
+                        <div class="form-check"><input class="form-check-input" type="checkbox" name="plaque_echolucency" id="pe"><label class="form-check-label" for="pe">Echolucency</label></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check"><input class="form-check-input" type="checkbox" name="contralateral_occlusion" id="co"><label class="form-check-label" for="co">Contralateral Occlusion</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" name="vertebral_artery_disease" id="vad"><label class="form-check-label" for="vad">Vertebral Artery Disease</label></div>
+                </div>
+            </div>
+            <hr>
+            <h5>Duplex Parameters</h5>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Peak Systolic Velocity (cm/s)</label>
+                    <input type="number" step="0.1" class="form-control" name="psv">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">End Diastolic Velocity (cm/s)</label>
+                    <input type="number" step="0.1" class="form-control" name="edv">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">ICA/CCA Ratio</label>
+                    <input type="number" step="0.01" class="form-control" name="ica_cca_ratio">
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a href="{{ url_for('patient_view', patient_id=patient.patient_id) }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

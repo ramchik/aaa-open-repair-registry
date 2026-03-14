@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Search{% endblock %}
+{% block content %}
+<h3>Search Results</h3>
+{% if query %}
+<p>Results for "<strong>{{ query }}</strong>": {{ results|length }} found</p>
+{% if results %}
+<div class="card">
+    <div class="card-body">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>ID</th><th>Hospital ID</th><th>Age</th><th>Sex</th><th></th></tr></thead>
+            <tbody>
+                {% for p in results %}
+                <tr>
+                    <td>{{ p.patient_id }}</td>
+                    <td>{{ p.hospital_id or '-' }}</td>
+                    <td>{{ p.age or '-' }}</td>
+                    <td>{{ p.sex or '-' }}</td>
+                    <td><a href="{{ url_for('patient_view', patient_id=p.patient_id) }}" class="btn btn-sm btn-outline-primary">View</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<p class="text-muted">No patients found.</p>
+{% endif %}
+{% endif %}
+{% endblock %}

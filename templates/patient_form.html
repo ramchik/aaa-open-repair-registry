@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if patient else 'New' }} Patient{% endblock %}
+{% block content %}
+<h3>{{ 'Edit' if patient else 'New' }} Patient</h3>
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Hospital ID</label>
+                    <input type="text" class="form-control" name="hospital_id" value="{{ patient.hospital_id if patient else '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Date of Birth</label>
+                    <input type="date" class="form-control" name="date_of_birth" value="{{ patient.date_of_birth if patient and patient.date_of_birth else '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Age (auto-calculated if DOB set)</label>
+                    <input type="number" class="form-control" name="age" min="0" max="120" value="{{ patient.age if patient and patient.age else '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Sex</label>
+                    <select class="form-select" name="sex">
+                        <option value="">--</option>
+                        <option value="Male" {{ 'selected' if patient and patient.sex == 'Male' }}>Male</option>
+                        <option value="Female" {{ 'selected' if patient and patient.sex == 'Female' }}>Female</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Height (cm)</label>
+                    <input type="number" step="0.1" class="form-control" name="height" value="{{ patient.height if patient and patient.height else '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Weight (kg)</label>
+                    <input type="number" step="0.1" class="form-control" name="weight" value="{{ patient.weight if patient and patient.weight else '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Ethnicity</label>
+                    <input type="text" class="form-control" name="ethnicity" value="{{ patient.ethnicity if patient else '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Smoking Status</label>
+                    <select class="form-select" name="smoking_status">
+                        <option value="">--</option>
+                        {% for s in ['Never', 'Former', 'Current'] %}
+                        <option value="{{ s }}" {{ 'selected' if patient and patient.smoking_status == s }}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Alcohol Use</label>
+                    <select class="form-select" name="alcohol_use">
+                        <option value="">--</option>
+                        {% for a in ['None', 'Social', 'Regular', 'Heavy'] %}
+                        <option value="{{ a }}" {{ 'selected' if patient and patient.alcohol_use == a }}>{{ a }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Save Patient</button>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
